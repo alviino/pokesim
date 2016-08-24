@@ -19,7 +19,7 @@ public class Battle {
 		this(attacker, defender, isQuiet, false);
 	}
 	
-	public Battle(Pokemon attacker, Pokemon defender, boolean isQuiet, boolean useRealTime) {
+	private Battle(Pokemon attacker, Pokemon defender, boolean isQuiet, boolean useRealTime) {
 		this.isQuiet = isQuiet;
 		this.attacker = attacker;
 		this.defender = defender;
