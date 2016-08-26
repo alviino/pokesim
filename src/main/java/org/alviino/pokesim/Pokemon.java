@@ -2,88 +2,6 @@ package org.alviino.pokesim;
 
 public class Pokemon {
 	
-	private static final double[] CPM_TABLE = {
-			0.094,
-			0.135137432,
-			0.16639787,
-			0.192650919,
-			0.21573247,
-			0.236572661,
-			0.25572005,
-			0.273530381,
-			0.29024988,
-			0.306057377,
-			0.3210876,
-			0.335445036,
-			0.34921268,
-			0.362457751,
-			0.37523559,
-			0.387592406,
-			0.39956728,
-			0.411193551,
-			0.42250001,
-			0.432926419,
-			0.44310755,
-			0.453059958,
-			0.46279839,
-			0.472336083,
-			0.48168495,
-			0.4908558,
-			0.49985844,
-			0.508701765,
-			0.51739395,
-			0.525942511,
-			0.53435433,
-			0.542635767,
-			0.55079269,
-			0.558830576,
-			0.56675452,
-			0.574569153,
-			0.58227891,
-			0.589887917,
-			0.59740001,
-			0.604818814,
-			0.61215729,
-			0.619399365,
-			0.62656713,
-			0.633644533,
-			0.64065295,
-			0.647576426,
-			0.65443563,
-			0.661214806,
-			0.667934,
-			0.674577537,
-			0.68116492,
-			0.687680648,
-			0.69414365,
-			0.700538673,
-			0.70688421,
-			0.713164996,
-			0.71939909,
-			0.725571552,
-			0.7317,
-			0.734741009,
-			0.73776948,
-			0.740785574,
-			0.74378943,
-			0.746781211,
-			0.74976104,
-			0.752729087,
-			0.75568551,
-			0.758630378,
-			0.76156384,
-			0.764486065,
-			0.76739717,
-			0.770297266,
-			0.7731865,
-			0.776064962,
-			0.77893275,
-			0.781790055,
-			0.78463697,
-			0.787473578,
-			0.79030001	
-	};
-
 	private final Species species;
 	private final BasicMove basicMove;
 	private final ChargeMove chargeMove;
@@ -92,7 +10,6 @@ public class Pokemon {
 	private final int staminaIv;
 	private final double level;
 	
-	private final double cpm;
 	private final double attack;
 	private final double defense;
 
@@ -107,19 +24,6 @@ public class Pokemon {
 	private int takeDamageTime;
 	private int incomingDamage;
 	private int basicMoveCounter;
-	
-	public static int computeCp(Species species, int attackIv, int defenseIv, int staminaIv, double level) {
-		double cpm = CPM_TABLE[(int) ((level - 1) / 0.5)];
-		double attack = cpm * (species.getAttack() + attackIv);
-		double defense = cpm * (species.getDefense() + defenseIv);
-		double stamina = cpm * (species.getStamina() + staminaIv);
-		return Math.max(10, (int) Math.floor(attack * Math.sqrt(defense) * Math.sqrt(stamina) / 10));
-	}
-	
-	public static int computeHp(Species species, int staminaIv, double level) {
-		double cpm = CPM_TABLE[(int) ((level - 1) / 0.5)];
-		return (int) (cpm * (species.getStamina() + staminaIv));
-	}
 	
 	public Pokemon(Species species, BasicMove basicMove, ChargeMove chargeMove, 
 			int attackIv, int defenseIv, int staminaIv, double level) {
@@ -139,16 +43,15 @@ public class Pokemon {
 		this.staminaIv = staminaIv;
 		this.level = level;
 		
-		this.cpm = CPM_TABLE[(int) ((this.level - 1) / 0.5)];
-		this.attack = this.cpm * (this.species.getAttack() + this.attackIv);
-		this.defense = this.cpm * (this.species.getDefense() + this.defenseIv);
+		this.attack = Calculator.calculateAttack(this.species, this.attackIv, this.level);
+		this.defense = Calculator.calculateDefense(this.species, this.defenseIv, this.level);
 	}
 	
 	public void join(Battle battle, boolean isDefender) {
 		this.battle = battle;
 		this.isDefender = isDefender;
 		this.isDead = false;
-		this.hp = (int) (this.getCpm() * ((this.isDefender ? 2 : 1) * this.getSpecies().getStamina() + this.getStaminaIv()));
+		this.hp = Calculator.calculateHp(this.species, this.staminaIv, this.level, isDefender);
 		this.hpMax = this.hp;
 		this.energy = 0;
 		this.energyCap = this.isDefender ? 200 : 100;
@@ -167,8 +70,8 @@ public class Pokemon {
 	public void tryToAttack(Pokemon opponent) {
 		if (!this.isDead && this.battle.getClock() == this.moveTime) {
 			if (this.energy >= this.chargeMove.getEnergyCost()
-					&& ((double) this.computeDamage(opponent, this.chargeMove) / (double) this.chargeMove.getDuration() 
-							> (double) this.computeDamage(opponent, this.basicMove) / (double) (this.basicMove.getDuration() 
+					&& ((double) Calculator.calculateDamage(this, opponent, this.chargeMove) / (double) this.chargeMove.getDuration() 
+							> (double) Calculator.calculateDamage(this, opponent, this.basicMove) / (double) (this.basicMove.getDuration() 
 									+ (this.isDefender ? (this.basicMoveCounter < 2 ? 1000 : 2000) : 0)))) {
 				this.useChargeMove(opponent);
 			} else {
@@ -183,7 +86,7 @@ public class Pokemon {
 		this.battle.log(this, "used " + this.basicMove.toString());
 		
 		this.increaseEnergyBy(this.basicMove.getEnergyGeneration());
-		opponent.incomingDamage = this.computeDamage(opponent, this.basicMove);
+		opponent.incomingDamage = Calculator.calculateDamage(this, opponent, this.basicMove);
 		opponent.takeDamageTime = this.moveTime + this.basicMove.getDuration();
 		
 		this.moveTime += this.basicMove.getDuration();
@@ -199,7 +102,7 @@ public class Pokemon {
 		this.battle.log(this, "used " + this.chargeMove.toString());
 		
 		this.energy -= this.chargeMove.getEnergyCost();
-		opponent.incomingDamage = this.computeDamage(opponent, this.chargeMove);
+		opponent.incomingDamage = Calculator.calculateDamage(this, opponent, this.chargeMove);
 		opponent.takeDamageTime = this.moveTime + this.chargeMove.getDuration();
 
 		this.moveTime += this.chargeMove.getDuration();
@@ -229,20 +132,6 @@ public class Pokemon {
 		if (this.energy > this.energyCap) {
 			this.energy = this.energyCap;
 		}
-	}
-	
-	private int computeDamage(Pokemon opponent, Move move) {
-		double stab = 1.0;
-		double effectiveness = 1.0;
-		
-		if (move.getType() == this.getSpecies().getType()[0] || move.getType() == this.getSpecies().getType()[1]) {
-			stab *= 1.25;
-		}
-		
-		effectiveness *= move.getType().getMultiplierAgainst(opponent.getSpecies().getType()[0]);
-		effectiveness *= move.getType().getMultiplierAgainst(opponent.getSpecies().getType()[1]);
-		
-		return (int) (Math.floor(0.5 * this.getAttack() / opponent.getDefense() * move.getPower() * stab * effectiveness) + 1);
 	}
 	
 	public String getSpeciesMoveSetCombinationName() {
@@ -303,10 +192,6 @@ public class Pokemon {
 
 	public double getLevel() {
 		return level;
-	}
-
-	public double getCpm() {
-		return cpm;
 	}
 
 	public double getAttack() {

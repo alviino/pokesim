@@ -175,28 +175,30 @@ public class Simulator implements ActionListener {
 		
 		if (e.getSource() == this.attackerSpecies || e.getSource() == this.attackerAttackIv || e.getSource() == this.attackerDefenseIv 
 				|| e.getSource() == this.attackerStaminaIv || e.getSource() == this.attackerLevel) {
-			this.attackerCp.setText(String.valueOf(Pokemon.computeCp(
+			this.attackerCp.setText(String.valueOf(Calculator.calculateCp(
 					(Species) this.attackerSpecies.getSelectedItem(), 
 					(int) this.attackerAttackIv.getSelectedItem(), 
 					(int) this.attackerDefenseIv.getSelectedItem(), 
 					(int) this.attackerStaminaIv.getSelectedItem(), 
 					(double) this.attackerLevel.getSelectedItem())));
-			this.attackerHp.setText(String.valueOf(Pokemon.computeHp(
+			this.attackerHp.setText(String.valueOf(Calculator.calculateHp(
 					(Species) this.attackerSpecies.getSelectedItem(), 
 					(int) this.attackerStaminaIv.getSelectedItem(), 
-					(double) this.attackerLevel.getSelectedItem())));
+					(double) this.attackerLevel.getSelectedItem(),
+					false)));
 		} else if (e.getSource() == this.defenderSpecies || e.getSource() == this.defenderAttackIv || e.getSource() == this.defenderDefenseIv 
 				|| e.getSource() == this.defenderStaminaIv || e.getSource() == this.defenderLevel) {
-			this.defenderCp.setText(String.valueOf(Pokemon.computeCp(
+			this.defenderCp.setText(String.valueOf(Calculator.calculateCp(
 					(Species) this.defenderSpecies.getSelectedItem(), 
 					(int) this.defenderAttackIv.getSelectedItem(), 
 					(int) this.defenderDefenseIv.getSelectedItem(), 
 					(int) this.defenderStaminaIv.getSelectedItem(), 
 					(double) this.defenderLevel.getSelectedItem())));
-			this.defenderHp.setText(String.valueOf(Pokemon.computeHp(
+			this.defenderHp.setText(String.valueOf(Calculator.calculateHp(
 					(Species) this.defenderSpecies.getSelectedItem(), 
 					(int) this.defenderStaminaIv.getSelectedItem(), 
-					(double) this.defenderLevel.getSelectedItem())));
+					(double) this.defenderLevel.getSelectedItem(),
+					false)));
 		}
 		
 		if (e.getSource() == this.attackerSpecies) {
