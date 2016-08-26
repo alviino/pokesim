@@ -108,6 +108,19 @@ public class Pokemon {
 	private int incomingDamage;
 	private int basicMoveCounter;
 	
+	public static int computeCp(Species species, int attackIv, int defenseIv, int staminaIv, double level) {
+		double cpm = CPM_TABLE[(int) ((level - 1) / 0.5)];
+		double attack = cpm * (species.getAttack() + attackIv);
+		double defense = cpm * (species.getDefense() + defenseIv);
+		double stamina = cpm * (species.getStamina() + staminaIv);
+		return Math.max(10, (int) Math.floor(attack * Math.sqrt(defense) * Math.sqrt(stamina) / 10));
+	}
+	
+	public static int computeHp(Species species, int staminaIv, double level) {
+		double cpm = CPM_TABLE[(int) ((level - 1) / 0.5)];
+		return (int) (cpm * (species.getStamina() + staminaIv));
+	}
+	
 	public Pokemon(Species species, BasicMove basicMove, ChargeMove chargeMove, 
 			int attackIv, int defenseIv, int staminaIv, double level) {
 		this.species = species;
